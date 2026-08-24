@@ -3,8 +3,17 @@ NFL Predictor Dashboard — Streamlit.
 
 Run: streamlit run dashboard/app.py
 """
+import os
+import sys
 import pickle
 from pathlib import Path
+
+# Streamlit puts the script's directory on sys.path; add project root so
+# `from src.teams import ...` resolves on Streamlit Cloud.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+os.chdir(PROJECT_ROOT)  # so relative paths in config.yaml resolve
 
 import pandas as pd
 import streamlit as st
