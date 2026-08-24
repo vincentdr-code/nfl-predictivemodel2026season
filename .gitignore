@@ -1,0 +1,38 @@
+# Environments
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Data caches (regenerable from nfl_data_py) — don't commit large files
+data/raw/
+data/processed/*.parquet
+data/processed/models/
+
+# Outputs (regenerable)
+outputs/*.csv
+outputs/*.txt
+
+# Keep the folder structure with .gitkeep files
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/processed/models/.gitkeep
+!outputs/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Misc
+*.log
+requirements_current.txt
