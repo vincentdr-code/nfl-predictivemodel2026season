@@ -1,0 +1,48 @@
+# NFL Predictor Configuration
+
+# Data sources
+data:
+  seasons: [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  models_dir: "data/processed/models"
+  outputs_dir: "outputs"
+
+# Elo model hyperparameters
+elo:
+  initial_rating: 1500
+  k_factor: 20
+  home_advantage: 65
+  season_reversion_factor: 0.333
+  min_rating: 1000
+  max_rating: 2000
+
+# LightGBM hyperparameters
+lightgbm:
+  n_estimators: 500
+  learning_rate: 0.1
+  max_depth: 7
+  num_leaves: 31
+  subsample: 0.8
+  colsample_bytree: 0.8
+
+# Feature engineering
+features:
+  rolling_windows: [4, 17]  # 4 games, season-to-date
+  injury_positions_priority: ["QB", "RB", "WR", "TE", "LT", "RT"]
+  weather_outdoor_only: true
+  bad_weather_wind_threshold_mph: 20
+  bad_weather_precip_threshold_in: 0.1
+
+# Simulation
+simulation:
+  n_sims: 10000
+  random_seed: 42
+  playoff_format: "2024"  # 7 seeds per conference
+
+# Backtest
+backtest:
+  walk_forward_start_season: 2010
+  walk_forward_end_season: 2024
+  calibration_buckets: 10
+  brier_target: 0.22  # Good NFL model threshold
