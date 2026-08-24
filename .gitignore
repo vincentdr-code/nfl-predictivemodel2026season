@@ -7,20 +7,12 @@ __pycache__/
 *.pyo
 .pytest_cache/
 
-# Data caches (regenerable from nfl_data_py) — don't commit large files
+# Raw PBP cache is huge (200MB+) and regenerable — don't commit
 data/raw/
-data/processed/*.parquet
-data/processed/models/
-
-# Outputs (regenerable)
-outputs/*.csv
-outputs/*.txt
-
-# Keep the folder structure with .gitkeep files
 !data/raw/.gitkeep
-!data/processed/.gitkeep
-!data/processed/models/.gitkeep
-!outputs/.gitkeep
+
+# Processed data + trained models + outputs ARE committed so the dashboard works
+# on Streamlit Cloud without needing to rebuild the pipeline
 
 # IDE
 .vscode/
