@@ -106,9 +106,10 @@ def compute_elo_features(schedules, config):
             'elo_win_prob_home': win_prob,
         })
 
-        # Update ratings for future games
-        elo.process_game(g['home_team'], g['away_team'],
-                         g['home_score'], g['away_score'])
+        # Update ratings only for played games
+        if pd.notna(g['home_score']) and pd.notna(g['away_score']):
+            elo.process_game(g['home_team'], g['away_team'],
+                             g['home_score'], g['away_score'])
         prev_season = int(g['season'])
 
     return pd.DataFrame(rows)

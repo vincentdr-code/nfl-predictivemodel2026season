@@ -160,7 +160,7 @@ def report_classifier(preds, elo_baseline=None, output_path=None):
 
     if output_path:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, 'w') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             f.write(report)
 
     return {'brier': bs, 'log_loss': ll, 'auc': auc, 'accuracy': acc}
@@ -195,7 +195,7 @@ def report_regressor(preds, output_path=None, label='Margin'):
 
     if output_path:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, 'w') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             f.write(report)
 
     return {'mae': mae, 'rmse': rmse}

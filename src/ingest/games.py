@@ -49,12 +49,18 @@ def get_schedules(seasons, cache_dir="data/raw", refresh=False):
     keep = [c for c in SCHEDULE_KEEP_COLS if c in schedules.columns]
     schedules = schedules[keep].copy()
 
-    # Filter to regular season with final scores (drop playoffs & unplayed)
-    schedules = schedules[schedules['game_type'] == 'REG']
-    schedules = schedules[schedules['home_score'].notna() & schedules['away_score'].notna()]
+    # Regular season only; keep BOTH played and upcoming games so the pipeline
+    # can generate predictions for the current season's remaining weeks.
+    schedules = schedules[schedules['game_type'] == 'REG'].copy()
 
-    schedules['home_win'] = (schedules['home_score'] > schedules['away_score']).astype(int)
-    schedules['margin'] = schedules['home_score'] - schedules['away_score']
+    played = schedules['home_score'].notna() & schedules['away_score'].notna()
+    schedules['played'] = played.astype(int)
+    schedules['home_win'] = np.where(played,
+                                     (schedules['home_score'] > schedules['away_score']).astype(int),
+                                     np.nan)
+    schedules['margin'] = np.where(played,
+                                   schedules['home_score'] - schedules['away_score'],
+                                   np.nan)
 
     schedules.to_parquet(cache_file)
     print(f"  Cached {len(schedules)} regular-season games to {cache_file}")

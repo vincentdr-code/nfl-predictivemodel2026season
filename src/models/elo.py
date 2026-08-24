@@ -110,7 +110,9 @@ def backtest_elo(schedules, config):
 
     elo = EloRating(**elo_config)
 
-    games = schedules.sort_values(['season', 'week', 'gameday']).reset_index(drop=True)
+    # Only played games contribute to Elo ratings and backtest metrics
+    played = schedules[schedules['home_score'].notna() & schedules['away_score'].notna()]
+    games = played.sort_values(['season', 'week', 'gameday']).reset_index(drop=True)
     results = []
     prev_season = None
 
@@ -210,7 +212,7 @@ def evaluate_and_report(results, output_path=None):
 
     if output_path:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, 'w') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             f.write(report)
         print(f"\n[OK] Saved report to {output_path}")
 

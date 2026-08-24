@@ -1,5 +1,5 @@
 ============================================================
-Elo Baseline — Walk-Forward Backtest
+Elo Baseline â€” Walk-Forward Backtest
 ============================================================
 Seasons evaluated: 2010-2024
 Games evaluated:   3,903

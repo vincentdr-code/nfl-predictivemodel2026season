@@ -1,5 +1,5 @@
 ============================================================
-Phase 4 — LightGBM Win Probability
+Phase 4 â€” LightGBM Win Probability
 ============================================================
 Seasons evaluated: 2010-2024
 Games evaluated:   3,903

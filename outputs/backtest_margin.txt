@@ -1,5 +1,5 @@
 ============================================================
-Phase 4 — LightGBM Margin
+Phase 4 â€” LightGBM Margin
 ============================================================
 Seasons evaluated: 2010-2024
 Games evaluated:   3,903
