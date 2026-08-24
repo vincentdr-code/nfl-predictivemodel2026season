@@ -358,7 +358,7 @@ CUSTOM_CSS = """
     }
 </style>
 """
-st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+st.html(CUSTOM_CSS)
 
 
 # ------------------------------ data loading ------------------------------
@@ -492,45 +492,42 @@ def game_row(row, records):
     away_color = primary_color(away)
     date_str = str(row['gameday'])[:10] if pd.notna(row.get('gameday')) else ''
 
-    return f"""
-    <div class="game-row {row_cls}">
-      <div class="team-side away">
-        <div class="team-info">
-          <div class="city">{away_city}</div>
-          <div class="name">{short_name(away)}</div>
-          <div class="record">{away_rec}</div>
-        </div>
-        <div class="team-mark"><img src="{logo_url(away)}" alt="{away}"/></div>
-      </div>
-      <div class="center-scores">
-        <div class="away {away_score_cls}">{as_}</div>
-        <div class="sep">·</div>
-        <div class="home {home_score_cls}">{hs}</div>
-      </div>
-      <div class="team-side">
-        <div class="team-mark"><img src="{logo_url(home)}" alt="{home}"/></div>
-        <div class="team-info">
-          <div class="city">{home_city}</div>
-          <div class="name">{short_name(home)}</div>
-          <div class="record">{home_rec}</div>
-        </div>
-      </div>
-    </div>
-    <div class="game-meta">
-      <div class="pct away">{short_name(away).upper()} {pa}%</div>
-      <div class="prob-track">
-        <div class="away-fill" style="width:{pa}%; background:{away_color};"></div>
-        <div class="home-fill" style="width:{ph}%; background:{home_color};"></div>
-      </div>
-      <div class="pct">{short_name(home).upper()} {ph}%</div>
-    </div>
-    <div class="stats-line">
-      {tag_html}
-      <span>SPREAD <strong>{row['pred_margin']:+.1f}</strong></span>
-      <span>TOTAL <strong>{row['pred_total']:.1f}</strong></span>
-      {f'<span>{date_str}</span>' if date_str else ''}
-    </div>
-    """
+    date_span = f'<span>{date_str}</span>' if date_str else ''
+    return (
+        f'<div class="game-row {row_cls}">'
+          '<div class="team-side away">'
+            f'<div class="team-info"><div class="city">{away_city}</div>'
+            f'<div class="name">{short_name(away)}</div>'
+            f'<div class="record">{away_rec}</div></div>'
+            f'<div class="team-mark"><img src="{logo_url(away)}" alt="{away}"/></div>'
+          '</div>'
+          '<div class="center-scores">'
+            f'<div class="away {away_score_cls}">{as_}</div>'
+            '<div class="sep">·</div>'
+            f'<div class="home {home_score_cls}">{hs}</div>'
+          '</div>'
+          '<div class="team-side">'
+            f'<div class="team-mark"><img src="{logo_url(home)}" alt="{home}"/></div>'
+            f'<div class="team-info"><div class="city">{home_city}</div>'
+            f'<div class="name">{short_name(home)}</div>'
+            f'<div class="record">{home_rec}</div></div>'
+          '</div>'
+        '</div>'
+        '<div class="game-meta">'
+          f'<div class="pct away">{short_name(away).upper()} {pa}%</div>'
+          '<div class="prob-track">'
+            f'<div class="away-fill" style="width:{pa}%; background:{away_color};"></div>'
+            f'<div class="home-fill" style="width:{ph}%; background:{home_color};"></div>'
+          '</div>'
+          f'<div class="pct">{short_name(home).upper()} {ph}%</div>'
+        '</div>'
+        '<div class="stats-line">'
+          f'{tag_html}'
+          f'<span>SPREAD <strong>{row["pred_margin"]:+.1f}</strong></span>'
+          f'<span>TOTAL <strong>{row["pred_total"]:.1f}</strong></span>'
+          f'{date_span}'
+        '</div>'
+    )
 
 
 def standings_row_html(rank, row, focus_team=None, top_seeds=7):
@@ -547,30 +544,26 @@ def standings_row_html(rank, row, focus_team=None, top_seeds=7):
     if is_playoff: classes.append('playoff')
     if is_focus:   classes.append('focus')
 
-    return f"""
-    <div class="{' '.join(classes)}">
-      <div class="rank{' playoff' if is_playoff else ''}">{rank}</div>
-      <div class="team-mark"><img src="{logo_url(team)}" alt="{team}"/></div>
-      <div class="team-name"><span class="city">{meta.get('city', '')}</span>{meta.get('name', team)}</div>
-      <div class="num">{int(row['current_wins'])}</div>
-      <div class="num">{row['sim_wins_mean']:.1f}</div>
-      <div class="odds-cell">
-        <div class="val">{odds*100:.1f}%</div>
-        <div class="bar" style="width:{bar_width}%;"></div>
-      </div>
-    </div>
-    """
+    rank_cls = ' playoff' if is_playoff else ''
+    return (
+        f'<div class="{" ".join(classes)}">'
+        f'<div class="rank{rank_cls}">{rank}</div>'
+        f'<div class="team-mark"><img src="{logo_url(team)}" alt="{team}"/></div>'
+        f'<div class="team-name"><span class="city">{meta.get("city", "")}</span>'
+        f'{meta.get("name", team)}</div>'
+        f'<div class="num">{int(row["current_wins"])}</div>'
+        f'<div class="num">{row["sim_wins_mean"]:.1f}</div>'
+        f'<div class="odds-cell"><div class="val">{odds*100:.1f}%</div>'
+        f'<div class="bar" style="width:{bar_width}%;"></div></div>'
+        f'</div>'
+    )
 
 
 def kpi(label, value, unit="", sub=""):
     unit_span = f'<span class="unit">{unit}</span>' if unit else ''
-    return f"""
-    <div class="kpi">
-      <div class="label">{label}</div>
-      <div class="value">{value}{unit_span}</div>
-      <div class="sub">{sub}</div>
-    </div>
-    """
+    return (f'<div class="kpi"><div class="label">{label}</div>'
+            f'<div class="value">{value}{unit_span}</div>'
+            f'<div class="sub">{sub}</div></div>')
 
 
 def playoff_status(odds):
@@ -587,23 +580,16 @@ def race_meter(odds, playoff_line=0.5):
     """Playoff race horizontal bar with a 50% marker."""
     pct = int(round(odds * 100))
     color = "var(--success)" if odds >= 0.75 else "var(--warn)" if odds >= 0.5 else "var(--accent)"
-    return f"""
-    <div class="race-meter">
-      <div class="race-label">
-        <span>Playoff Race</span>
-        <span>{pct}% odds</span>
-      </div>
-      <div class="race-track">
-        <div class="race-fill" style="width:{pct}%; background:{color};"></div>
-        <div class="race-marker" style="left:50%;">
-          <span class="mlabel">50% cutoff</span>
-        </div>
-        <div class="race-marker" style="left:75%;">
-          <span class="mlabel">75% likely</span>
-        </div>
-      </div>
-    </div>
-    """
+    return (
+        '<div class="race-meter">'
+        '<div class="race-label"><span>Playoff Race</span>'
+        f'<span>{pct}% odds</span></div>'
+        '<div class="race-track">'
+        f'<div class="race-fill" style="width:{pct}%; background:{color};"></div>'
+        '<div class="race-marker" style="left:50%;"><span class="mlabel">50% cutoff</span></div>'
+        '<div class="race-marker" style="left:75%;"><span class="mlabel">75% likely</span></div>'
+        '</div></div>'
+    )
 
 
 # ------------------------------ main ------------------------------
@@ -616,15 +602,13 @@ def main():
     feats = load_features()
     schedules = load_schedules()
 
-    st.markdown("""
-    <div class="masthead">
-      <div class="masthead-title">NFL <span class="accent">Predictor</span></div>
-      <div class="masthead-meta">
-        Model v1 · 6,495 games trained<br>
-        2026 season · Live projections
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.html(
+        '<div class="masthead">'
+        '<div class="masthead-title">NFL <span class="accent">Predictor</span></div>'
+        '<div class="masthead-meta">Model v1 · 6,495 games trained<br>'
+        '2026 season · Live projections</div>'
+        '</div>'
+    )
 
     if feats is None or schedules is None:
         st.error("Data not built. Run `python make_dataset.py` and `python -m src.features.build_features`.")
@@ -674,12 +658,12 @@ def main():
 
         records = compute_records(schedules, season, week)
         if len(preds) == 0:
-            st.markdown('<div class="empty-state">No games match the current filters.</div>', unsafe_allow_html=True)
+            st.html('<div class="empty-state">No games match the current filters.</div>')
         else:
             filter_desc = "" if team_filter == "All Teams" else f" · {short_name(team_filter)} only"
-            st.markdown(f'<div class="eyebrow"><span>{season} · Week {week}{filter_desc}</span><span class="count">{len(preds)} games</span></div>',
-                        unsafe_allow_html=True)
-            st.markdown("".join(game_row(g, records) for _, g in preds.iterrows()), unsafe_allow_html=True)
+            st.html(f'<div class="eyebrow"><span>{season} · Week {week}{filter_desc}</span>'
+                    f'<span class="count">{len(preds)} games</span></div>')
+            st.html("".join(game_row(g, records) for _, g in preds.iterrows()))
 
     # ============================== Tab: Team Focus ==============================
     with tab_focus:
@@ -712,43 +696,42 @@ def main():
         else:
             status_cls, status_label = "status-out", "No Sim Data"
 
-        st.markdown(f"""
-        <div class="team-header">
-          <div class="mark"><img src="{logo_url(focus_team)}" alt="{focus_team}"/></div>
-          <div class="name-block">
-            <div class="city">{meta.get('city', '')}</div>
-            <div class="name">{meta.get('name', focus_team)}</div>
-            <div class="div">{div_name}</div>
-          </div>
-          <div class="status-badge {status_cls}">{status_label}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.html(
+            f'<div class="team-header">'
+            f'<div class="mark"><img src="{logo_url(focus_team)}" alt="{focus_team}"/></div>'
+            f'<div class="name-block"><div class="city">{meta.get("city", "")}</div>'
+            f'<div class="name">{meta.get("name", focus_team)}</div>'
+            f'<div class="div">{div_name}</div></div>'
+            f'<div class="status-badge {status_cls}">{status_label}</div>'
+            f'</div>'
+        )
 
         if sim_row is not None:
             # KPI strip for the team
             conf_teams = sim_df[sim_df['conference'] == meta.get('conf', '')].sort_values('playoff_odds', ascending=False).reset_index(drop=True)
             conf_rank = int(conf_teams.index[conf_teams['team'] == focus_team][0]) + 1
 
-            kpi_html = f"""
-            <div class="kpi-strip">
-              {kpi("Playoff Odds", f"{odds*100:.1f}", "%", sub=f"AFC/NFC seed #{conf_rank}")}
-              {kpi("Division Odds", f"{float(sim_row['division_win_odds'])*100:.1f}", "%", sub=f"{meta.get('conf', '')} {meta.get('div', '')}")}
-              {kpi("Projected Wins", f"{sim_row['sim_wins_mean']:.1f}", sub=f"Range: {sim_row['sim_wins_p10']:.0f}–{sim_row['sim_wins_p90']:.0f}")}
-              {kpi("Current Wins", f"{int(sim_row['current_wins'])}", sub="Regular season")}
-            </div>
-            """
-            st.markdown(kpi_html, unsafe_allow_html=True)
+            kpi_html = (
+                '<div class="kpi-strip">'
+                + kpi("Playoff Odds", f"{odds*100:.1f}", "%", sub=f"AFC/NFC seed #{conf_rank}")
+                + kpi("Division Odds", f"{float(sim_row['division_win_odds'])*100:.1f}", "%",
+                      sub=f"{meta.get('conf', '')} {meta.get('div', '')}")
+                + kpi("Projected Wins", f"{sim_row['sim_wins_mean']:.1f}",
+                      sub=f"Range: {sim_row['sim_wins_p10']:.0f}–{sim_row['sim_wins_p90']:.0f}")
+                + kpi("Current Wins", f"{int(sim_row['current_wins'])}", sub="Regular season")
+                + '</div>'
+            )
+            st.html(kpi_html)
 
             # Race meter
-            st.markdown(race_meter(odds), unsafe_allow_html=True)
+            st.html(race_meter(odds))
 
         # Team's schedule with predictions
         all_preds = predict_all_games(feats, focus_season, winprob_m, margin_m, total_m)
         team_games = all_preds[(all_preds['home_team'] == focus_team) | (all_preds['away_team'] == focus_team)].copy()
 
         if len(team_games) > 0:
-            st.markdown('<div class="eyebrow"><span>Full Schedule</span><span class="count">Predictions + Actuals</span></div>',
-                        unsafe_allow_html=True)
+            st.html('<div class="eyebrow"><span>Full Schedule</span><span class="count">Predictions + Actuals</span></div>')
 
             rows_html = ""
             for _, g in team_games.iterrows():
@@ -785,12 +768,11 @@ def main():
                   <div class="spread">{spread_for_team:+.1f}</div>
                 </div>
                 """
-            st.markdown(rows_html, unsafe_allow_html=True)
+            st.html(rows_html)
 
             # Wins distribution chart (from sim if available)
             if sim_row is not None:
-                st.markdown('<div class="eyebrow"><span>Projected Wins Range</span><span class="count">10th–90th percentile</span></div>',
-                            unsafe_allow_html=True)
+                st.html('<div class="eyebrow"><span>Projected Wins Range</span><span class="count">10th–90th percentile</span></div>')
                 # Simple horizontal range visualization via Altair
                 range_data = pd.DataFrame([{
                     'label': team_name(focus_team),
@@ -830,21 +812,22 @@ def main():
             playoff_bids = (df['playoff_odds'] > 0.5).sum()
             virtual_locks = (df['playoff_odds'] > 0.85).sum()
 
-            kpi_html = f"""
-            <div class="kpi-strip">
-              {kpi("Simulations", "10,000", sub="Monte Carlo iterations")}
-              {kpi("Playoff Locks (>85%)", str(virtual_locks), sub=f"of {len(df)} teams")}
-              {kpi("Top Playoff Odds", f"{top_playoff['playoff_odds']*100:.1f}", "%", sub=team_name(top_playoff['team']))}
-              {kpi("Top Division Odds", f"{top_div['division_win_odds']*100:.1f}", "%", sub=team_name(top_div['team']))}
-            </div>
-            """
-            st.markdown(kpi_html, unsafe_allow_html=True)
+            kpi_html = (
+                '<div class="kpi-strip">'
+                + kpi("Simulations", "10,000", sub="Monte Carlo iterations")
+                + kpi("Virtual Locks", str(virtual_locks), sub=f"teams above 85% odds")
+                + kpi("Top Playoff Odds", f"{top_playoff['playoff_odds']*100:.1f}", "%",
+                      sub=team_name(top_playoff['team']))
+                + kpi("Top Division Odds", f"{top_div['division_win_odds']*100:.1f}", "%",
+                      sub=team_name(top_div['team']))
+                + '</div>'
+            )
+            st.html(kpi_html)
 
             afc_col, nfc_col = st.columns(2, gap="large")
             for label, conf_col in [("AFC", afc_col), ("NFC", nfc_col)]:
                 with conf_col:
-                    st.markdown(f'<div class="eyebrow"><span>{label} Playoff Picture</span><span class="count">Top 7 seed</span></div>',
-                                unsafe_allow_html=True)
+                    st.html(f'<div class="eyebrow"><span>{label} Playoff Picture</span><span class="count">Top 7 seed</span></div>')
                     conf_df = (df[df['conference'] == label]
                                .sort_values('playoff_odds', ascending=False)
                                .reset_index(drop=True))
@@ -857,12 +840,10 @@ def main():
                     </div>
                     """
                     rows = "".join(standings_row_html(i + 1, r, focus_team=focus_team_sim) for i, r in conf_df.iterrows())
-                    st.markdown('<div class="standings">' + header + rows + '</div>',
-                                unsafe_allow_html=True)
+                    st.html('<div class="standings">' + header + rows + '</div>')
 
             # Playoff odds distribution chart
-            st.markdown('<div class="eyebrow"><span>Playoff Odds Distribution</span><span class="count">All 32 teams</span></div>',
-                        unsafe_allow_html=True)
+            st.html('<div class="eyebrow"><span>Playoff Odds Distribution</span><span class="count">All 32 teams</span></div>')
             chart_df = df.sort_values('playoff_odds', ascending=True).copy()
             chart_df['playoff_pct'] = (chart_df['playoff_odds'] * 100).round(1)
             chart_df['is_focus'] = (chart_df['team'] == focus_team_sim) if focus_team_sim else False
@@ -908,18 +889,17 @@ def main():
         except (ValueError, TypeError):
             delta_sub = ""
 
-        kpi_html = f"""
-        <div class="kpi-strip">
-          {kpi("Elo Brier", elo_bs, sub="Baseline · 2010-2024")}
-          {kpi("LightGBM Brier", lgb_bs, sub=delta_sub)}
-          {kpi("Margin MAE", margin_mae, "pts", sub="vs 11.41 predict-zero baseline")}
-          {kpi("Home Score MAE", home_mae, "pts", sub="per-team point prediction")}
-        </div>
-        """
-        st.markdown(kpi_html, unsafe_allow_html=True)
+        kpi_html = (
+            '<div class="kpi-strip">'
+            + kpi("Elo Brier", elo_bs, sub="Baseline · 2010-2024")
+            + kpi("LightGBM Brier", lgb_bs, sub=delta_sub)
+            + kpi("Margin MAE", margin_mae, "pts", sub="vs 11.41 predict-zero baseline")
+            + kpi("Home Score MAE", home_mae, "pts", sub="per-team point prediction")
+            + '</div>'
+        )
+        st.html(kpi_html)
 
-        st.markdown('<div class="eyebrow"><span>Full Backtest Reports</span><span class="count">Walk-forward 2010-2024</span></div>',
-                    unsafe_allow_html=True)
+        st.html('<div class="eyebrow"><span>Full Backtest Reports</span><span class="count">Walk-forward 2010-2024</span></div>')
         for name in ['backtest_elo', 'backtest_winprob', 'backtest_margin', 'backtest_total', 'backtest_scores']:
             if name in reports:
                 title = name.replace('backtest_', '').replace('_', ' ').title()
