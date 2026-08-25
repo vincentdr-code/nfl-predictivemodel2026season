@@ -6230,7 +6230,7 @@ game_id,season,game_type,week,gameday,gametime,home_team,away_team,home_score,aw
 2026_01_BUF_HOU,2026,REG,1,2026-09-13,13:00,HOU,BUF,,,,,,7,7,-1.5,44.5,0,,astroturf,Reliant Stadium,,,,,DeMeco Ryans,Sean McDermott,0,,,0,0,0,0,0,0
 2026_01_BAL_IND,2026,REG,1,2026-09-13,13:00,IND,BAL,,,,,,7,7,-3.5,48.5,0,,fieldturf,Lucas Oil Stadium,,,,,Shane Steichen,Jesse Minter,0,,,0,0,0,0,0,0
 2026_01_CLE_JAX,2026,REG,1,2026-09-13,13:00,JAX,CLE,,,,,,7,7,7.5,40.5,0,outdoors,grass,EverBank Stadium,,,,,Liam Coen,Todd Monken,0,,,0,0,0,0,0,0
-2026_01_ATL_PIT,2026,REG,1,2026-09-13,13:00,PIT,ATL,,,,,,7,7,3.0,42.5,0,outdoors,grass,Acrisure Stadium,,,,,Mike McCarthy,Raheem Morris,0,,,0,0,0,0,0,0
+2026_01_ATL_PIT,2026,REG,1,2026-09-13,13:00,PIT,ATL,,,,,,7,7,3.0,41.5,0,outdoors,grass,Acrisure Stadium,,,,,Mike McCarthy,Raheem Morris,0,,,0,0,0,0,0,0
 2026_01_NYJ_TEN,2026,REG,1,2026-09-13,13:00,TEN,NYJ,,,,,,7,7,3.0,38.5,0,outdoors,grass,Nissan Stadium,,,,,Robert Saleh,Aaron Glenn,0,,,0,0,0,0,0,0
 2026_01_ARI_LAC,2026,REG,1,2026-09-13,16:25,LAC,ARI,,,,,,7,7,10.5,46.5,0,dome,matrixturf,SoFi Stadium,,,,,Jim Harbaugh,Jonathan Gannon,0,,,0,0,0,0,0,0
 2026_01_MIA_LV,2026,REG,1,2026-09-13,16:25,LV,MIA,,,,,,7,7,3.5,40.5,0,dome,grass,Allegiant Stadium,,,,,Klint Kubliak,Jeff Hafley,0,,,0,0,0,0,0,0
@@ -6285,7 +6285,7 @@ game_id,season,game_type,week,gameday,gametime,home_team,away_team,home_score,aw
 2026_04_LAC_SEA,2026,REG,4,2026-10-04,16:25,SEA,LAC,,,,,,7,7,3.0,45.5,0,outdoors,fieldturf,Lumen Field,,,,,Mike Macdonald,Jim Harbaugh,0,,,0,0,0,0,0,0
 2026_04_DEN_SF,2026,REG,4,2026-10-04,16:25,SF,DEN,,,,,,7,7,2.5,46.5,0,outdoors,grass,Levi's Stadium,,,,,Kyle Shanahan,Sean Payton,0,,,0,0,0,0,0,0
 2026_04_DET_CAR,2026,REG,4,2026-10-04,20:20,CAR,DET,,,,,,7,7,-3.0,47.5,0,outdoors,grass,Bank of America Stadium,,,,,Dave Canales,Dan Campbell,0,,,0,0,0,0,0,0
-2026_04_ATL_NO,2026,REG,4,2026-10-05,20:15,NO,ATL,,,,,,8,11,2.5,45.5,1,dome,sportturf,Caesars Superdome,,,,,Kellen Moore,Raheem Morris,0,,,0,0,0,0,0,0
+2026_04_ATL_NO,2026,REG,4,2026-10-05,20:15,NO,ATL,,,,,,8,11,2.5,46.5,1,dome,sportturf,Caesars Superdome,,,,,Kellen Moore,Raheem Morris,0,,,0,0,0,0,0,0
 2026_05_TB_DAL,2026,REG,5,2026-10-08,20:15,DAL,TB,,,,,,4,4,3.5,52.5,0,,matrixturf,AT&T Stadium,,,,,Brian Schottenheimer,Todd Bowles,0,,,0,0,0,0,0,0
 2026_05_PHI_JAX,2026,REG,5,2026-10-11,09:30,JAX,PHI,,,,,,7,7,-1.5,45.5,0,outdoors,grass,Tottenham Hotspur Stadium,,,,,Liam Coen,Nick Sirianni,0,,,0,0,0,0,0,0
 2026_05_CIN_MIA,2026,REG,5,2026-10-11,13:00,MIA,CIN,,,,,,7,7,-6.0,49.5,0,outdoors,grass,Hard Rock Stadium,,,,,Jeff Hafley,Zac Taylor,0,,,0,0,0,0,0,0
@@ -6301,7 +6301,7 @@ game_id,season,game_type,week,gameday,gametime,home_team,away_team,home_score,aw
 2026_05_SF_SEA,2026,REG,5,2026-10-11,16:25,SEA,SF,,,,,,7,7,3.5,48.5,1,outdoors,fieldturf,Lumen Field,,,,,Mike Macdonald,Kyle Shanahan,0,,,0,0,0,0,0,0
 2026_05_BAL_ATL,2026,REG,5,2026-10-11,20:20,ATL,BAL,,,,,,6,7,-4.5,48.5,0,,fieldturf,Mercedes-Benz Stadium,,,,,Raheem Morris,Jesse Minter,0,,,0,0,0,0,0,0
 2026_05_BUF_LA,2026,REG,5,2026-10-12,20:15,LA,BUF,,,,,,8,8,3.0,53.5,0,dome,matrixturf,SoFi Stadium,,,,,Sean McVay,Sean McDermott,0,,,0,0,0,0,0,0
-2026_06_SEA_DEN,2026,REG,6,2026-10-15,20:15,DEN,SEA,,,,,,4,4,-2.5,43.5,0,outdoors,grass,Empower Field at Mile High,,,,,Sean Payton,Mike Macdonald,0,,,0,0,0,0,0,0
+2026_06_SEA_DEN,2026,REG,6,2026-10-15,20:15,DEN,SEA,,,,,,4,4,-1.5,43.5,0,outdoors,grass,Empower Field at Mile High,,,,,Sean Payton,Mike Macdonald,0,,,0,0,0,0,0,0
 2026_06_HOU_JAX,2026,REG,6,2026-10-18,09:30,JAX,HOU,,,,,,7,7,1.5,42.5,1,outdoors,grass,Wembley Stadium,,,,,Liam Coen,DeMeco Ryans,0,,,0,0,0,0,0,0
 2026_06_CHI_ATL,2026,REG,6,2026-10-18,13:00,ATL,CHI,,,,,,7,7,-3.0,47.5,0,,fieldturf,Mercedes-Benz Stadium,,,,,Raheem Morris,Ben Johnson,0,,,0,0,0,0,0,0
 2026_06_BAL_CLE,2026,REG,6,2026-10-18,13:00,CLE,BAL,,,,,,7,7,-6.5,44.5,1,outdoors,grass,Huntington Bank Field,,,,,Todd Monken,Jesse Minter,0,,,0,0,0,0,0,0
@@ -6317,10 +6317,10 @@ game_id,season,game_type,week,gameday,gametime,home_team,away_team,home_score,aw
 2026_06_WAS_SF,2026,REG,6,2026-10-19,20:15,SF,WAS,,,,,,8,8,5.5,50.5,0,outdoors,grass,Levi's Stadium,,,,,Kyle Shanahan,Dan Quinn,0,,,0,0,0,0,0,0
 2026_07_NE_CHI,2026,REG,7,2026-10-22,20:15,CHI,NE,,,,,,4,4,1.5,47.5,0,outdoors,grass,Soldier Field,,,,,Ben Johnson,Mike Vrabel,0,,,0,0,0,0,0,0
 2026_07_PIT_NO,2026,REG,7,2026-10-25,09:30,NO,PIT,,,,,,7,7,-2.5,42.5,0,dome,sportturf,Stade de France,,,,,Kellen Moore,Mike McCarthy,0,,,0,0,0,0,0,0
-2026_07_SF_ATL,2026,REG,7,2026-10-25,13:00,ATL,SF,,,,,,7,6,-4.5,47.5,0,,fieldturf,Mercedes-Benz Stadium,,,,,Raheem Morris,Kyle Shanahan,0,,,0,0,0,0,0,0
+2026_07_SF_ATL,2026,REG,7,2026-10-25,13:00,ATL,SF,,,,,,7,6,,,0,,fieldturf,Mercedes-Benz Stadium,,,,,Raheem Morris,Kyle Shanahan,0,,,0,0,0,0,0,0
 2026_07_CIN_BAL,2026,REG,7,2026-10-25,13:00,BAL,CIN,,,,,,7,14,3.5,51.5,1,outdoors,grass,M&T Bank Stadium,,,,,Jesse Minter,Zac Taylor,0,,,0,0,0,0,0,0
 2026_07_TB_CAR,2026,REG,7,2026-10-25,13:00,CAR,TB,,,,,,7,7,,,1,outdoors,grass,Bank of America Stadium,,,,,Dave Canales,Todd Bowles,0,,,0,0,0,0,0,0
-2026_07_NYG_HOU,2026,REG,7,2026-10-25,13:00,HOU,NYG,,,,,,7,7,,,0,,astroturf,Reliant Stadium,,,,,DeMeco Ryans,John Harbaugh,0,,,0,0,0,0,0,0
+2026_07_NYG_HOU,2026,REG,7,2026-10-25,13:00,HOU,NYG,,,,,,7,7,5.5,43.5,0,,astroturf,Reliant Stadium,,,,,DeMeco Ryans,John Harbaugh,0,,,0,0,0,0,0,0
 2026_07_IND_MIN,2026,REG,7,2026-10-25,13:00,MIN,IND,,,,,,14,7,2.5,46.5,0,dome,sportturf,U.S. Bank Stadium,,,,,Kevin O'Connell,Shane Steichen,0,,,0,0,0,0,0,0
 2026_07_MIA_NYJ,2026,REG,7,2026-10-25,13:00,NYJ,MIA,,,,,,7,14,2.5,41.5,1,outdoors,fieldturf,MetLife Stadium,,,,,Aaron Glenn,Jeff Hafley,0,,,0,0,0,0,0,0
 2026_07_CLE_TEN,2026,REG,7,2026-10-25,13:00,TEN,CLE,,,,,,7,7,2.5,40.5,0,outdoors,grass,Nissan Stadium,,,,,Robert Saleh,Todd Monken,0,,,0,0,0,0,0,0
