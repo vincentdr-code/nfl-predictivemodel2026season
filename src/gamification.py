@@ -1,9 +1,13 @@
 """
-Pick 'Em + achievements storage backed by SQLite.
+Pick 'Em + achievements storage.
 
-Single-user (per-browser-session) mode: uses a browser-cookie user_id and
-persists to a local SQLite file. Multi-user is a future upgrade.
+Persistence: uses Turso (hosted libSQL) if TURSO_DATABASE_URL and
+TURSO_AUTH_TOKEN env vars are set (typical for Streamlit Cloud), else
+falls back to a local SQLite file for dev.
+
+Turso is SQLite-compatible so the schema and queries are unchanged.
 """
+import os
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -13,6 +17,17 @@ import pandas as pd
 
 
 DB_PATH = Path("data/processed/gamification.db")
+
+TURSO_URL = os.environ.get("TURSO_DATABASE_URL")
+TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN")
+USE_TURSO = bool(TURSO_URL and TURSO_TOKEN)
+
+if USE_TURSO:
+    try:
+        import libsql_experimental as libsql  # type: ignore
+    except ImportError:
+        print("gamification: libsql-experimental not installed; falling back to local SQLite")
+        USE_TURSO = False
 
 
 SCHEMA = """
@@ -43,12 +58,32 @@ CREATE TABLE IF NOT EXISTS achievements (
 
 @contextmanager
 def _conn():
+    """
+    Yields a DB connection. On Turso: uses embedded-replica mode — a local
+    file kept in sync with the Turso cloud DB. Sync-on-open pulls latest;
+    sync-on-close pushes local writes. Falls back to plain SQLite locally.
+    """
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+
+    if USE_TURSO:
+        replica_path = str(DB_PATH.parent / "gamification.turso.db")
+        conn = libsql.connect(replica_path, sync_url=TURSO_URL, auth_token=TURSO_TOKEN)
+        try:
+            conn.sync()
+        except Exception as e:
+            print(f"gamification: Turso sync-on-open failed: {e}")
+    else:
+        conn = sqlite3.connect(DB_PATH)
+
     conn.executescript(SCHEMA)
     try:
         yield conn
         conn.commit()
+        if USE_TURSO:
+            try:
+                conn.sync()
+            except Exception as e:
+                print(f"gamification: Turso sync-on-close failed: {e}")
     finally:
         conn.close()
 

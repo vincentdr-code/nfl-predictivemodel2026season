@@ -20,6 +20,16 @@ import streamlit as st
 import yaml
 import altair as alt
 
+# Promote Streamlit secrets to env vars BEFORE importing gamification so
+# it picks up the Turso credentials on startup.
+try:
+    if 'TURSO_DATABASE_URL' in st.secrets:
+        os.environ['TURSO_DATABASE_URL'] = str(st.secrets['TURSO_DATABASE_URL'])
+    if 'TURSO_AUTH_TOKEN' in st.secrets:
+        os.environ['TURSO_AUTH_TOKEN'] = str(st.secrets['TURSO_AUTH_TOKEN'])
+except (FileNotFoundError, KeyError, AttributeError):
+    pass  # no secrets configured; gamification falls back to local SQLite
+
 from src.teams import TEAMS, logo_url, team_name, short_name, primary_color
 from src import gamification as game
 from src.simulate.playoff_bracket import compute_bracket_probs
