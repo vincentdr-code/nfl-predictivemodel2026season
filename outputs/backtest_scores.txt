@@ -3,9 +3,9 @@ Phase 5 — Full Score Model
 ============================================================
 Games evaluated:   3,903
 
-MAE home_score:    7.738
-MAE away_score:    7.501
-MAE margin:        10.431
-MAE total:         10.778
-Winner-from-margin accuracy: 0.640
+MAE home_score:    7.703
+MAE away_score:    7.477
+MAE margin:        10.387
+MAE total:         10.768
+Winner-from-margin accuracy: 0.643
 ============================================================

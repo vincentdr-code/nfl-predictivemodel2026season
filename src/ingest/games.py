@@ -75,11 +75,16 @@ PBP_KEEP_COLS = [
     'yardline_100', 'touchdown', 'field_goal_result',
     'fumble_lost', 'interception', 'pass', 'rush',
     'success', 'first_down',
+    'passer_player_name',  # for QB ratings
+    'qb_dropback',
 ]
 
 
 def _get_pbp_one_season(season, cache_dir, max_retries=3):
-    """Download PBP for a single season with retries. Cache per season."""
+    """
+    Download PBP for a single season with retries. Cache per season.
+    Returns empty DataFrame if the season's data doesn't exist yet (404).
+    """
     per_season_dir = os.path.join(cache_dir, "pbp_by_season")
     Path(per_season_dir).mkdir(parents=True, exist_ok=True)
     cache_file = os.path.join(per_season_dir, f"pbp_{season}.parquet")
@@ -95,6 +100,15 @@ def _get_pbp_one_season(season, cache_dir, max_retries=3):
             return df
         except Exception as e:
             last_err = e
+            msg = str(e)
+            # 404 = season not published yet; don't retry, don't fail
+            if '404' in msg or 'Not Found' in msg or (
+                isinstance(e, NameError) and "'Error' is not defined" in msg
+            ):
+                print(f"    season {season}: no data available yet (404). Skipping.")
+                empty = pd.DataFrame(columns=PBP_KEEP_COLS)
+                empty.to_parquet(cache_file)  # cache empty so we don't retry every run
+                return empty
             print(f"    season {season} attempt {attempt}/{max_retries} failed: {type(e).__name__}: {e}")
 
     raise RuntimeError(f"Failed to download PBP for season {season} after {max_retries} attempts") from last_err

@@ -1,0 +1,87 @@
+name: Weekly data refresh
+
+on:
+  schedule:
+    # Every Tuesday 11:00 UTC (7am ET, after Monday Night Football)
+    - cron: "0 11 * * 2"
+  workflow_dispatch:  # allow manual trigger
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install --only-binary :all: \
+            numpy pandas scikit-learn xgboost lightgbm \
+            pyarrow pyyaml requests streamlit pytest altair nfl-data-py
+
+      - name: Force re-fetch of current-season schedule + PBP
+        run: |
+          # Remove caches for the current season so we pull fresh data
+          rm -f data/raw/schedules.parquet
+          # Keep historical PBP; refetch only current season
+          CURRENT_YEAR=$(date +%Y)
+          rm -f data/raw/pbp_by_season/pbp_${CURRENT_YEAR}.parquet
+          rm -f data/raw/pbp.parquet
+
+      - name: Rebuild dataset
+        run: python make_dataset.py
+
+      - name: Rebuild features
+        run: python -m src.features.build_features
+
+      - name: Rerun Elo backtest
+        run: python -m src.models.elo
+
+      - name: Retrain LightGBM models
+        run: |
+          python -m src.models.train_winprob_spread
+          python -m src.models.train_score
+
+      - name: Refresh 2026 season simulation
+        run: |
+          # Determine current week; default to 1 if we can't figure it out
+          python -c "
+          from datetime import date
+          # NFL 2026 season starts Sept 9, 2026
+          start = date(2026, 9, 9)
+          today = date.today()
+          delta_days = (today - start).days
+          week = max(1, min(18, delta_days // 7 + 1))
+          print(f'Simulating from week {week}')
+          import subprocess
+          subprocess.run(['python', '-m', 'src.simulate.season_sim',
+                          '--season', '2026', '--week', str(week),
+                          '--n-sims', '10000'], check=True)
+          "
+
+      - name: Commit refreshed artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/processed outputs
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: weekly data refresh $(date +%Y-%m-%d)"
+            git push
+          fi

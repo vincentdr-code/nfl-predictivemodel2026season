@@ -14,6 +14,7 @@ from pathlib import Path
 
 from src.ingest import games as ingest_games
 from src.models.elo import EloRating
+from src.models.qb_ratings import build_qb_ratings_history, match_qb_to_schedule
 
 
 ROLLING_STATS = [
@@ -147,13 +148,19 @@ def build_feature_matrix(schedules, team_game, config):
     away_tg = away_tg.rename(columns={'team': 'away_team'})
 
     # Join to schedule
-    feats = schedules[['game_id', 'season', 'week', 'gameday',
-                       'home_team', 'away_team',
-                       'home_score', 'away_score', 'home_win', 'margin',
-                       'total', 'spread_line', 'total_line',
-                       'home_rest', 'away_rest', 'div_game',
-                       'roof', 'temp', 'wind',
-                       'home_qb_name', 'away_qb_name']].copy()
+    schedule_cols = ['game_id', 'season', 'week', 'gameday',
+                     'home_team', 'away_team',
+                     'home_score', 'away_score', 'home_win', 'margin',
+                     'total', 'spread_line', 'total_line',
+                     'home_rest', 'away_rest', 'div_game',
+                     'roof', 'temp', 'wind',
+                     'home_qb_name', 'away_qb_name',
+                     # Injury flags (added in v2)
+                     'home_qb_out', 'away_qb_out',
+                     'home_qb_questionable', 'away_qb_questionable',
+                     'home_key_out', 'away_key_out']
+    available = [c for c in schedule_cols if c in schedules.columns]
+    feats = schedules[available].copy()
 
     feats = feats.merge(home_tg, on=['game_id', 'home_team'], how='left')
     feats = feats.merge(away_tg, on=['game_id', 'away_team'], how='left')
@@ -162,6 +169,19 @@ def build_feature_matrix(schedules, team_game, config):
     print("  Computing Elo features chronologically...")
     elo_df = compute_elo_features(schedules, config)
     feats = feats.merge(elo_df, on='game_id', how='left')
+
+    # Add QB rating features
+    processed = config['data']['processed_dir']
+    qb_path = Path(processed) / "qb_ratings.parquet"
+    if qb_path.exists():
+        print("  Merging QB ratings...")
+        qb_ratings = pd.read_parquet(qb_path)
+        feats = match_qb_to_schedule(feats, qb_ratings)
+    else:
+        print("  (skip) qb_ratings.parquet not built yet; run src.models.qb_ratings first")
+        feats['home_qb_rating'] = 0.0
+        feats['away_qb_rating'] = 0.0
+        feats['qb_rating_diff'] = 0.0
 
     # Derived features
     feats['rest_diff'] = feats['home_rest'].fillna(7) - feats['away_rest'].fillna(7)

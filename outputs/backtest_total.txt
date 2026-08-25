@@ -4,8 +4,8 @@ Phase 4 — LightGBM Total
 Seasons evaluated: 2010-2024
 Games evaluated:   3,903
 
-MAE:               10.778
-RMSE:              13.659
+MAE:               10.768
+RMSE:              13.644
   vs predict-zero  45.425
   vs predict-median 10.953
 ============================================================

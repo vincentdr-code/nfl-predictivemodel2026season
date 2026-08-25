@@ -6,7 +6,7 @@ import argparse
 import pandas as pd
 import yaml
 from pathlib import Path
-from src.ingest import games
+from src.ingest import games, injuries
 
 
 def load_config(config_file="config.yaml"):
@@ -25,17 +25,26 @@ def main(config_file="config.yaml", refresh=False, week=None):
     print(f"Building dataset for seasons {seasons[0]}-{seasons[-1]}...")
 
     # 1. Schedules (already includes weather, QB names, rest, div flag)
-    print("\n[1/3] Fetching schedules...")
+    print("\n[1/4] Fetching schedules...")
     schedules = games.get_schedules(seasons, cache_dir=raw_dir, refresh=refresh)
     print(f"  {len(schedules):,} regular-season games")
 
     # 2. Play-by-play (for EPA / third downs / turnovers / success rate)
-    print("\n[2/3] Fetching play-by-play...")
+    print("\n[2/4] Fetching play-by-play...")
     pbp = games.get_pbp(seasons, cache_dir=raw_dir, refresh=refresh)
     print(f"  {len(pbp):,} plays loaded")
 
-    # 3. Build team-game table (offense + defense stats per team per game)
-    print("\n[3/3] Aggregating PBP to team-game level...")
+    # 3. Injuries (historical from 2010+)
+    print("\n[3/4] Fetching injuries...")
+    inj = injuries.get_injuries(seasons, cache_dir=raw_dir, refresh=refresh)
+    print(f"  {len(inj):,} injury records")
+
+    schedules = injuries.build_injury_flags(schedules, inj)
+    n_qb_out = int(schedules['home_qb_out'].sum() + schedules['away_qb_out'].sum())
+    print(f"  Games with a starting QB Out: {n_qb_out}")
+
+    # 4. Build team-game table (offense + defense stats per team per game)
+    print("\n[4/4] Aggregating PBP to team-game level...")
     team_game = games.build_game_team_table(schedules, pbp)
     print(f"  {len(team_game):,} team-game rows")
 

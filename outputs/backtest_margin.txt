@@ -4,8 +4,8 @@ Phase 4 — LightGBM Margin
 Seasons evaluated: 2010-2024
 Games evaluated:   3,903
 
-MAE:               10.431
-RMSE:              13.492
+MAE:               10.387
+RMSE:              13.429
   vs predict-zero  11.407
   vs predict-median 11.219
 ============================================================
