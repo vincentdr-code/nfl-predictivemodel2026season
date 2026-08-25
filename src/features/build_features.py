@@ -148,7 +148,7 @@ def build_feature_matrix(schedules, team_game, config):
     away_tg = away_tg.rename(columns={'team': 'away_team'})
 
     # Join to schedule
-    schedule_cols = ['game_id', 'season', 'week', 'gameday',
+    schedule_cols = ['game_id', 'season', 'week', 'gameday', 'gametime',
                      'home_team', 'away_team',
                      'home_score', 'away_score', 'home_win', 'margin',
                      'total', 'spread_line', 'total_line',

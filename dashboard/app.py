@@ -32,6 +32,8 @@ except (FileNotFoundError, KeyError, AttributeError):
 
 from src.teams import TEAMS, logo_url, team_name, short_name, primary_color
 from src import gamification as game
+from src import leagues
+from src.kickoff import kickoff_utc, is_locked, kickoff_display
 from src.simulate.playoff_bracket import compute_bracket_probs
 
 
@@ -349,6 +351,170 @@ CUSTOM_CSS = """
     .stCode pre { background: var(--surface) !important; border: 1px solid var(--border) !important;
                   border-radius: 4px !important; font-family: 'Geist Mono', monospace !important;
                   font-size: 0.8rem !important; }
+
+    /* ---------- Pick 'Em v2 (vertical mobile-first cards) ---------- */
+    .pick-card-v2 {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.85rem;
+    }
+    .pick-card-v2.locked { opacity: 0.7; background: var(--bg); }
+    .pick-card-v2 .header-row {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 0.75rem;
+        font-family: 'Geist Mono', monospace; font-size: 0.7rem;
+        color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .pick-card-v2 .header-row .kickoff { color: var(--text-2); }
+    .pick-card-v2 .header-row .lock-tag {
+        background: rgba(225,29,72,0.1); color: var(--accent);
+        padding: 2px 6px; border-radius: 3px; font-weight: 600;
+    }
+    .pick-card-v2 .matchup {
+        display: grid; grid-template-columns: 1fr auto 1fr;
+        align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;
+    }
+    .pick-card-v2 .side { display: flex; align-items: center; gap: 0.6rem; }
+    .pick-card-v2 .side.right { justify-content: flex-end; text-align: right; }
+    .pick-card-v2 .side img { width: 36px; height: 36px; object-fit: contain; }
+    .pick-card-v2 .side .info .team-abbr {
+        font-weight: 700; font-size: 1rem; letter-spacing: -0.02em;
+    }
+    .pick-card-v2 .side .info .team-city {
+        font-family: 'Geist Mono', monospace; font-size: 0.65rem;
+        color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .pick-card-v2 .vs { color: var(--text-3); font-family: 'Geist Mono', monospace;
+                        font-size: 0.75rem; }
+    .pick-card-v2 .model-hint {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.5rem 0.7rem; margin-top: 0.5rem;
+        background: rgba(59,130,246,0.06); border-radius: 6px;
+        font-family: 'Geist Mono', monospace; font-size: 0.7rem;
+        color: var(--text-2);
+    }
+    .pick-card-v2 .model-hint strong { color: var(--info); font-weight: 600; }
+    .pick-card-v2 .final-row {
+        text-align: center; padding: 0.4rem;
+        font-family: 'Geist Mono', monospace; font-size: 0.85rem;
+        color: var(--text-2); font-weight: 500;
+    }
+    .pick-card-v2 .final-row .winner { color: var(--text); font-weight: 700; }
+    .pick-card-v2 .final-row.correct { color: var(--success); }
+    .pick-card-v2 .final-row.incorrect { color: var(--accent); }
+
+    /* Sticky save bar on mobile */
+    .save-bar {
+        position: sticky; bottom: 0;
+        background: linear-gradient(180deg, rgba(10,10,11,0) 0%, var(--bg) 30%, var(--bg) 100%);
+        padding: 1.5rem 0 1rem;
+        margin: 1rem -1rem 0;
+        border-top: 1px solid var(--border);
+        z-index: 10;
+    }
+    .unsaved-pill {
+        display: inline-block;
+        padding: 4px 10px; border-radius: 12px;
+        background: rgba(245,158,11,0.12); color: var(--warn);
+        border: 1px solid rgba(245,158,11,0.25);
+        font-family: 'Geist Mono', monospace; font-size: 0.7rem;
+        text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;
+        margin-left: 0.5rem;
+    }
+
+    /* Leaderboard */
+    .lb-row {
+        display: grid; grid-template-columns: 30px 1fr 60px 60px 60px 60px;
+        gap: 0.5rem; padding: 0.75rem 0.5rem;
+        align-items: center; border-bottom: 1px solid var(--border);
+    }
+    .lb-row.you { background: linear-gradient(90deg, rgba(59,130,246,0.1) 0%, transparent 60%);
+                  border-left: 3px solid var(--info); padding-left: calc(0.5rem - 3px); }
+    .lb-row.leader .rank { color: var(--gold); font-weight: 700; }
+    .lb-row .rank {
+        font-family: 'Geist Mono', monospace; font-size: 0.9rem;
+        color: var(--text-3); font-weight: 600;
+    }
+    .lb-row .username { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+    .lb-row .username .subtitle {
+        display: block; font-family: 'Geist Mono', monospace; font-size: 0.65rem;
+        color: var(--text-3); font-weight: 400; letter-spacing: 0.05em;
+        text-transform: uppercase; margin-top: 2px;
+    }
+    .lb-row .num {
+        font-family: 'Geist Mono', monospace; font-variant-numeric: tabular-nums;
+        font-size: 0.9rem; text-align: right;
+    }
+    .lb-row .num.strong { font-weight: 700; color: var(--text); }
+    .lb-row .num.dim { color: var(--text-3); }
+
+    .lb-header {
+        display: grid; grid-template-columns: 30px 1fr 60px 60px 60px 60px;
+        gap: 0.5rem; padding: 0.5rem;
+        font-family: 'Geist Mono', monospace; font-size: 0.65rem;
+        color: var(--text-3); text-transform: uppercase; letter-spacing: 0.12em;
+        border-bottom: 1px solid var(--border-2); font-weight: 500;
+    }
+    .lb-header .right { text-align: right; }
+
+    /* League chip */
+    .league-chip {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        padding: 0.4rem 0.75rem; border-radius: 999px;
+        background: var(--surface); border: 1px solid var(--border);
+        font-family: 'Geist Mono', monospace; font-size: 0.72rem;
+        color: var(--text-2);
+    }
+    .league-chip .code {
+        font-weight: 700; color: var(--accent); letter-spacing: 0.05em;
+    }
+    .league-chip .name { color: var(--text); font-weight: 500; letter-spacing: -0.01em; }
+
+    /* ---------- Mobile breakpoints ---------- */
+    @media (max-width: 768px) {
+        .main .block-container { padding-top: 1rem; padding-left: 0.75rem; padding-right: 0.75rem; }
+        .masthead { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        .masthead-title { font-size: 1.4rem; }
+        .masthead-meta { text-align: left; font-size: 0.6rem; }
+        .stTabs [data-baseweb="tab"] { padding: 0.6rem 0.75rem; font-size: 0.85rem; }
+        .kpi-strip { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; padding: 1rem 0 1.25rem; }
+        .kpi .value { font-size: 1.4rem; }
+        .game-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+        .game-row .team-side.away { justify-content: flex-start; text-align: left; flex-direction: row; }
+        .game-row .team-side.away .team-mark { order: -1; }
+        .center-scores { justify-content: center; }
+        .standings-header, .standings-row {
+            grid-template-columns: 26px 26px 1fr 36px 50px 72px;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+        }
+        .standings-row .team-name { font-size: 0.85rem; }
+        .standings-row .team-name .city { display: none; }
+        .lb-header, .lb-row {
+            grid-template-columns: 24px 1fr 50px 50px 50px 55px;
+            gap: 0.4rem;
+        }
+        .lb-row .username { font-size: 0.85rem; }
+        .lb-row .num { font-size: 0.8rem; }
+        .pick-card-v2 { padding: 0.85rem 1rem; }
+        .pick-card-v2 .side img { width: 32px; height: 32px; }
+        .pick-card-v2 .side .info .team-abbr { font-size: 0.9rem; }
+        .team-header { grid-template-columns: 60px 1fr; gap: 1rem; padding: 1rem 0; }
+        .team-header .mark img { width: 56px; height: 56px; }
+        .team-header .name-block .name { font-size: 1.5rem; }
+        .team-header .status-badge { grid-column: 1 / span 2; text-align: center; }
+    }
+
+    /* Make Streamlit tap targets bigger on mobile */
+    @media (max-width: 640px) {
+        .stButton button { padding: 0.75rem 1rem; min-height: 44px; font-size: 0.95rem; }
+        .stSelectbox [data-baseweb="select"] { min-height: 44px; }
+    }
 </style>
 """
 st.html(CUSTOM_CSS)
@@ -416,10 +582,13 @@ def predict_season(_feats, season, _wp, _mg, _tot):
     subset['pred_total'] = _tot['model'].predict(subset[_tot['features']].fillna(0))
     subset['pred_home_score'] = ((subset['pred_margin'] + subset['pred_total']) / 2).round(0).astype(int)
     subset['pred_away_score'] = ((subset['pred_total'] - subset['pred_margin']) / 2).round(0).astype(int)
-    return subset[['game_id', 'season', 'week', 'gameday', 'home_team', 'away_team',
-                   'home_score', 'away_score',
-                   'pred_home_win_prob', 'pred_margin', 'pred_total',
-                   'pred_home_score', 'pred_away_score']].sort_values(['week', 'gameday'])
+    keep = ['game_id', 'season', 'week', 'gameday', 'home_team', 'away_team',
+            'home_score', 'away_score',
+            'pred_home_win_prob', 'pred_margin', 'pred_total',
+            'pred_home_score', 'pred_away_score']
+    if 'gametime' in subset.columns:
+        keep.insert(4, 'gametime')
+    return subset[keep].sort_values(['week', 'gameday'])
 
 
 # ------------------------------ components ------------------------------
@@ -549,6 +718,66 @@ def playoff_status(odds):
     return "status-out", "On The Outside"
 
 
+def pick_card_v2(game_row, user_pick=None, model_pick_team=None,
+                 model_pick_prob=None, confidence=None, played=False):
+    """
+    Vertical, mobile-first game card for the Pick 'Em tab. Renders the
+    matchup + model hint + a lock indicator. The actual pick control
+    (radio/select) is rendered by the caller (Streamlit widgets can't
+    live inside our HTML).
+    """
+    home = game_row['home_team']; away = game_row['away_team']
+    home_meta = TEAMS.get(home, {}); away_meta = TEAMS.get(away, {})
+    locked = is_locked(game_row.get('gameday'), game_row.get('gametime'))
+    ko_str = kickoff_display(game_row.get('gameday'), game_row.get('gametime'))
+    lock_html = '<span class="lock-tag">Locked</span>' if locked else ''
+    conf_txt = f'Conf: {confidence}' if confidence else 'No confidence set'
+
+    if model_pick_team and model_pick_prob is not None:
+        model_line = (f'<div class="model-hint"><span>Model pick</span>'
+                      f'<span><strong>{short_name(model_pick_team)}</strong> '
+                      f'{model_pick_prob*100:.0f}%</span></div>')
+    else:
+        model_line = ''
+
+    final_html = ''
+    if played:
+        hs, as_ = int(game_row['home_score']), int(game_row['away_score'])
+        winner = home if hs > as_ else away
+        cls = ''
+        if user_pick:
+            cls = 'correct' if user_pick == winner else 'incorrect'
+        result = f"{short_name(away)} {as_} · <span class='winner'>{short_name(winner)}</span> · {short_name(home)} {hs}"
+        final_html = f'<div class="final-row {cls}">{result}</div>'
+
+    return (
+        f'<div class="pick-card-v2{" locked" if locked else ""}">'
+          f'<div class="header-row"><span class="kickoff">{ko_str}</span>'
+          f'<span>{conf_txt}{lock_html}</span></div>'
+          '<div class="matchup">'
+            '<div class="side">'
+              f'<img src="{logo_url(away)}"/>'
+              f'<div class="info"><div class="team-abbr">{short_name(away)}</div>'
+              f'<div class="team-city">{away_meta.get("city", "")}</div></div>'
+            '</div>'
+            '<div class="vs">@</div>'
+            '<div class="side right">'
+              f'<div class="info"><div class="team-abbr">{short_name(home)}</div>'
+              f'<div class="team-city">{home_meta.get("city", "")}</div></div>'
+              f'<img src="{logo_url(home)}"/>'
+            '</div>'
+          '</div>'
+          f'{model_line}'
+          f'{final_html}'
+        '</div>'
+    )
+
+
+def league_chip(league_id, name):
+    return (f'<div class="league-chip"><span class="code">{league_id}</span>'
+            f'<span class="name">{name}</span></div>')
+
+
 def bracket_slot(seed, team, prob):
     meta = TEAMS.get(team, {})
     return (
@@ -659,115 +888,259 @@ def main():
             st.html("".join(game_row(g, records, user_pick=user_picks_map.get(g['game_id']))
                             for _, g in preds.iterrows()))
 
-    # ============================== TAB: Pick 'Em ==============================
+    # ============================== TAB: Pick 'Em (League) ==============================
     with tab_pick:
-        c1, c2, c3 = st.columns([2, 1, 1])
+        # ---------- Auth (username) ----------
+        c1, c2 = st.columns([2, 3])
         with c1:
-            uid = st.text_input("Username (any name — remembered across sessions)",
-                                value=st.session_state.user_id, key="pick_uid",
-                                placeholder="e.g. daniel")
-            if uid != st.session_state.user_id:
+            uid = st.text_input("Your username", value=st.session_state.user_id,
+                                key="pick_uid", placeholder="e.g. danny")
+            if uid.strip() != st.session_state.user_id:
                 st.session_state.user_id = uid.strip()
+                st.session_state.pop('current_league_id', None)
                 st.rerun()
-        with c2:
-            pick_season = st.selectbox("Season", sorted(feats['season'].unique()),
-                                        index=len(feats['season'].unique()) - 1, key="pick_season")
-        with c3:
-            pick_weeks = sorted(feats[feats['season'] == pick_season]['week'].unique())
-            pick_week = st.selectbox("Week", pick_weeks, key="pick_week")
 
         if not st.session_state.user_id:
-            st.html('<div class="empty-state">Enter a username above to start making picks. '
-                    'Anyone using the same name will see your picks.</div>')
+            st.html('<div class="empty-state">Enter a username above to see your leagues and make picks.</div>')
         else:
             user_id = st.session_state.user_id
-            all_preds = predict_season(feats, pick_season, winprob_m, margin_m, total_m)
-            week_preds = all_preds[all_preds['week'] == pick_week].reset_index(drop=True)
 
-            # Load existing picks
-            existing_picks = game.get_picks(user_id, pick_season, pick_week)
-            existing_map = dict(zip(existing_picks['game_id'], existing_picks['pick_team']))
+            # ---------- League selection ----------
+            user_leagues = leagues.get_user_leagues(user_id)
+            has_leagues = len(user_leagues) > 0
 
-            # Season scoreboard at top
-            season_history = game.score_season(user_id, pick_season, all_preds, schedules)
-            if not season_history.empty and 'user_correct' in season_history.columns:
-                user_total = int(season_history['user_correct'].sum())
-                user_played = int(season_history['user_total'].sum())
-                model_total = int(season_history['model_correct'].sum())
-                model_played = int(season_history['model_total'].sum())
-                st.html(
-                    '<div class="kpi-strip">'
-                    + kpi("Your Record", f"{user_total}-{user_played - user_total}",
-                          sub=f"{(user_total/user_played*100) if user_played else 0:.0f}% correct")
-                    + kpi("Model Record", f"{model_total}-{model_played - model_total}",
-                          sub=f"{(model_total/model_played*100) if model_played else 0:.0f}% correct")
-                    + kpi("Beat Model Wks", str(int(season_history['beat_model'].sum())),
-                          sub=f"of {len(season_history)} weeks")
-                    + kpi("Perfect Weeks", str(int(season_history['perfect_week'].sum())),
-                          sub="all picks correct")
-                    + '</div>'
-                )
+            lc1, lc2 = st.columns([3, 2])
+            with lc1:
+                if has_leagues:
+                    league_options = user_leagues['league_id'].tolist()
+                    current_lid = st.session_state.get('current_league_id')
+                    if current_lid not in league_options:
+                        current_lid = league_options[0]
+                        st.session_state.current_league_id = current_lid
+                    league_labels = {row['league_id']: f"{row['name']}  ({row['league_id']})  ·  {int(row['member_count'])} members"
+                                      for _, row in user_leagues.iterrows()}
+                    picked = st.selectbox("League", league_options,
+                                          index=league_options.index(current_lid),
+                                          format_func=lambda x: league_labels.get(x, x),
+                                          key="league_picker")
+                    if picked != current_lid:
+                        st.session_state.current_league_id = picked
+                        st.rerun()
+                else:
+                    st.info("You aren't in any leagues yet. Create one, or join a friend's below.")
 
-            if len(week_preds) == 0:
-                st.html(f'<div class="empty-state">No games for Week {pick_week}.</div>')
-            else:
-                st.html(f'<div class="eyebrow"><span>Make Your Picks · Week {pick_week}</span>'
-                        f'<span class="count">{len(week_preds)} games</span></div>')
+            with lc2:
+                action = st.radio("Manage", ["Play", "Create League", "Join League"],
+                                   horizontal=True, key="league_action",
+                                   label_visibility="collapsed")
 
-                # Show pick form using columns
-                for _, g in week_preds.iterrows():
-                    away, home = g['away_team'], g['home_team']
-                    played = pd.notna(g.get('home_score'))
-                    actual_winner = None
-                    if played:
-                        actual_winner = home if g['home_score'] > g['away_score'] else away
+            # ---------- Create/Join flow ----------
+            if action == "Create League":
+                with st.form("create_league", clear_on_submit=True):
+                    new_name = st.text_input("League name", placeholder="e.g. Danny's Office Pool")
+                    create_season = st.selectbox("Season",
+                                                  sorted(feats['season'].unique(), reverse=True))
+                    submitted = st.form_submit_button("Create league", type="primary")
+                    if submitted:
+                        if not new_name.strip():
+                            st.error("Give the league a name.")
+                        else:
+                            try:
+                                new_code = leagues.create_league(
+                                    new_name.strip(), user_id, int(create_season), 'confidence')
+                                st.success(f"Created **{new_name}**. Invite code: **{new_code}** — share it with your friends.")
+                                st.session_state.current_league_id = new_code
+                                st.session_state.league_action = "Play"
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Couldn't create: {e}")
 
-                    p_home = float(g['pred_home_win_prob'])
-                    p_away = 1 - p_home
-                    model_pick = home if p_home > 0.5 else away
+            elif action == "Join League":
+                with st.form("join_league", clear_on_submit=True):
+                    code_input = st.text_input("Invite code", placeholder="e.g. K3M8P2",
+                                                max_chars=8)
+                    submitted = st.form_submit_button("Join league", type="primary")
+                    if submitted:
+                        code = code_input.strip().upper()
+                        if not code:
+                            st.error("Enter an invite code.")
+                        elif leagues.join_league(code, user_id):
+                            st.success(f"Joined league {code}.")
+                            st.session_state.current_league_id = code
+                            st.session_state.league_action = "Play"
+                            st.rerun()
+                        else:
+                            st.error(f"League {code} not found. Double-check the code.")
 
-                    current_pick = existing_map.get(g['game_id'])
-                    key = f"pick_{g['game_id']}"
+            elif action == "Play" and has_leagues:
+                current_lid = st.session_state.current_league_id
+                league = leagues.get_league(current_lid)
+                league_season = int(league['season'])
 
-                    with st.container():
-                        cA, cB = st.columns([3, 1])
-                        with cA:
-                            # Determine index for radio
-                            options = [away, home]
-                            labels = {
-                                away: f"{team_name(away)}  ·  {p_away*100:.0f}%",
-                                home: f"{team_name(home)}  ·  {p_home*100:.0f}%",
-                            }
-                            idx = options.index(current_pick) if current_pick in options else None
-                            pick = st.radio(
-                                f"Week {int(g['week'])} · {team_name(away)} @ {team_name(home)}",
-                                options=options,
-                                index=idx if idx is not None else 0,
-                                format_func=lambda t: labels[t],
-                                key=key,
-                                horizontal=True,
-                                disabled=played,
-                            )
-                            if not played and pick != current_pick:
-                                game.save_pick(user_id, g['game_id'], int(pick_season), int(pick_week), pick)
-                                # Try to grant "first pick" achievement
-                                game.grant_achievement(user_id, 'first_pick', int(pick_season))
-                        with cB:
-                            model_html = f"<span class='tag pick'>Model: {short_name(model_pick)}</span>"
-                            if played:
-                                if current_pick == actual_winner:
-                                    result_html = f"<span class='tag lock'>You won</span>"
-                                elif current_pick:
-                                    result_html = f"<span class='tag upset'>Missed</span>"
-                                else:
-                                    result_html = f"<span class='tag final'>Final: {short_name(actual_winner)}</span>"
-                                st.html(f'<div style="text-align:right; margin-top: 1.5rem;">{model_html} {result_html}</div>')
+                # Season/week selectors
+                sc1, sc2, sc3 = st.columns([1, 1, 2])
+                with sc1:
+                    pick_season = st.selectbox("Season",
+                                                sorted(feats['season'].unique()),
+                                                index=list(sorted(feats['season'].unique())).index(league_season)
+                                                if league_season in list(feats['season'].unique())
+                                                else len(feats['season'].unique()) - 1,
+                                                key="pick_season")
+                with sc2:
+                    pick_weeks = sorted(feats[feats['season'] == pick_season]['week'].unique())
+                    pick_week = st.selectbox("Week", pick_weeks, key="pick_week")
+
+                # League chip + tabs
+                st.html(f'<div style="margin: 0.5rem 0;">{league_chip(current_lid, league["name"])}</div>')
+
+                pick_tab, board_tab, mem_tab = st.tabs(["Make Picks", "Leaderboard", "Members"])
+
+                all_preds = predict_season(feats, pick_season, winprob_m, margin_m, total_m)
+
+                # ---------- Sub-tab: MAKE PICKS ----------
+                with pick_tab:
+                    week_preds = all_preds[all_preds['week'] == pick_week].reset_index(drop=True)
+                    if len(week_preds) == 0:
+                        st.html(f'<div class="empty-state">No games for Week {pick_week}.</div>')
+                    else:
+                        n_games = len(week_preds)
+
+                        # Load saved picks from DB into initial session state
+                        saved_picks_df = leagues.get_picks(current_lid, user_id=user_id,
+                                                            season=pick_season, week=pick_week)
+                        saved = {r['game_id']: {'pick_team': r['pick_team'],
+                                                'confidence': int(r['confidence']) if pd.notna(r.get('confidence')) else None}
+                                 for _, r in saved_picks_df.iterrows()}
+
+                        # Session-state pending picks (per user/league/week)
+                        state_key = f"pending_picks_{current_lid}_{pick_season}_{pick_week}"
+                        if state_key not in st.session_state:
+                            st.session_state[state_key] = dict(saved)  # start with saved
+
+                        pending = st.session_state[state_key]
+
+                        # Count unsaved
+                        unsaved_count = sum(1 for gid, p in pending.items()
+                                             if p != saved.get(gid))
+                        unsaved_html = (f'<span class="unsaved-pill">{unsaved_count} unsaved</span>'
+                                        if unsaved_count else '')
+
+                        st.html(f'<div class="eyebrow"><span>Week {pick_week} Picks · Confidence 1-{n_games}{unsaved_html}</span>'
+                                f'<span class="count">{n_games} games</span></div>')
+
+                        # Render each game
+                        for _, g in week_preds.iterrows():
+                            gid = g['game_id']
+                            home, away = g['home_team'], g['away_team']
+                            p_home = float(g['pred_home_win_prob'])
+                            model_pick = home if p_home > 0.5 else away
+                            model_prob = max(p_home, 1 - p_home)
+                            played = pd.notna(g.get('home_score'))
+                            locked = played or is_locked(g.get('gameday'), g.get('gametime'))
+                            cur = pending.get(gid, {})
+
+                            with st.container():
+                                st.html(pick_card_v2(
+                                    g, user_pick=cur.get('pick_team'),
+                                    model_pick_team=model_pick, model_pick_prob=model_prob,
+                                    confidence=cur.get('confidence'), played=played,
+                                ))
+                                cA, cB = st.columns([3, 1])
+                                with cA:
+                                    options = [away, home]
+                                    idx = options.index(cur.get('pick_team')) if cur.get('pick_team') in options else 0
+                                    pick = st.radio(
+                                        f"Winner · {short_name(away)} @ {short_name(home)}",
+                                        options=options, index=idx,
+                                        format_func=lambda t: f"{short_name(t)} — {team_name(t)}",
+                                        key=f"pick_{gid}", horizontal=True,
+                                        disabled=locked, label_visibility="collapsed",
+                                    )
+                                with cB:
+                                    conf = st.number_input(
+                                        "Conf", min_value=1, max_value=n_games,
+                                        value=cur.get('confidence') or n_games,
+                                        step=1, key=f"conf_{gid}",
+                                        disabled=locked, label_visibility="collapsed",
+                                    )
+                                # Update pending
+                                if not locked:
+                                    pending[gid] = {'pick_team': pick, 'confidence': int(conf)}
+
+                        # ---------- Save bar (sticky-ish on mobile via CSS) ----------
+                        st.html('<div class="save-bar"></div>')
+                        used_confidences = [p['confidence'] for p in pending.values() if p.get('confidence')]
+                        dupes = [c for c in used_confidences if used_confidences.count(c) > 1]
+                        b1, b2 = st.columns([1, 3])
+                        with b1:
+                            save_clicked = st.button("Save Picks", type="primary", use_container_width=True)
+                        with b2:
+                            if dupes:
+                                st.warning(f"Confidence values must be unique. Duplicates: {sorted(set(dupes))}")
+                            elif unsaved_count == 0:
+                                st.caption("All picks saved.")
                             else:
-                                st.html(f'<div style="text-align:right; margin-top: 1.5rem;">{model_html}</div>')
+                                st.caption(f"{unsaved_count} pick(s) not yet saved.")
 
-                # After user makes picks, check achievements
-                if any(g['game_id'] in existing_map for _, g in week_preds.iterrows()):
-                    game.check_and_grant_all(user_id, int(pick_season), int(pick_week), all_preds, schedules)
+                        if save_clicked:
+                            if dupes:
+                                st.error("Fix duplicate confidence values before saving.")
+                            else:
+                                to_save = {gid: p for gid, p in pending.items()
+                                            if p != saved.get(gid) and not is_locked(
+                                                week_preds[week_preds['game_id'] == gid].iloc[0].get('gameday'),
+                                                week_preds[week_preds['game_id'] == gid].iloc[0].get('gametime'))}
+                                if to_save:
+                                    leagues.save_picks_batch(current_lid, user_id, int(pick_season), int(pick_week), to_save)
+                                    game.grant_achievement(user_id, 'first_pick', int(pick_season))
+                                st.success(f"Saved {len(to_save)} pick(s).")
+                                st.rerun()
+
+                # ---------- Sub-tab: LEADERBOARD ----------
+                with board_tab:
+                    lb = leagues.score_league_season(current_lid, pick_season, all_preds, schedules)
+                    if lb.empty:
+                        st.html('<div class="empty-state">No completed games yet this season. Come back after Week 1.</div>')
+                    else:
+                        st.html(f'<div class="eyebrow"><span>Season Standings</span>'
+                                f'<span class="count">{len(lb)} players · {int(lb["weeks_scored"].max())} weeks scored</span></div>')
+                        header = ('<div class="lb-header">'
+                                  '<div>#</div><div>Player</div>'
+                                  '<div class="right">Pts</div>'
+                                  '<div class="right">W-L</div>'
+                                  '<div class="right">%</div>'
+                                  '<div class="right">Best Wk</div></div>')
+                        rows_html = header
+                        for i, row in lb.iterrows():
+                            rank = i + 1
+                            classes = ['lb-row']
+                            if row['user_id'] == user_id: classes.append('you')
+                            if rank == 1: classes.append('leader')
+                            wl = f"{int(row['correct'])}-{int(row['total']) - int(row['correct'])}"
+                            beat_line = f"{int(row['beat_model_wks'])} weeks beat model"
+                            rows_html += (
+                                f'<div class="{" ".join(classes)}">'
+                                f'<div class="rank">{rank}</div>'
+                                f'<div class="username">{row["user_id"]}'
+                                f'<span class="subtitle">{beat_line}</span></div>'
+                                f'<div class="num strong">{int(row["confidence_pts"])}</div>'
+                                f'<div class="num">{wl}</div>'
+                                f'<div class="num dim">{row["pct"]:.0f}%</div>'
+                                f'<div class="num">{int(row["best_week_pts"])}</div>'
+                                '</div>'
+                            )
+                        st.html(rows_html)
+
+                # ---------- Sub-tab: MEMBERS ----------
+                with mem_tab:
+                    members = leagues.get_league_members(current_lid)
+                    st.html(f'<div class="eyebrow"><span>League: {league["name"]}</span>'
+                            f'<span class="count">Code: {current_lid} · Share with friends</span></div>')
+                    if len(members) == 0:
+                        st.info("No members yet — invite someone with the code above.")
+                    else:
+                        for _, m in members.iterrows():
+                            st.markdown(f"- **{m['user_id']}** — joined {str(m['joined_at'])[:10]}")
 
     # ============================== TAB: Team Focus ==============================
     with tab_focus:
